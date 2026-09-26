@@ -98,31 +98,62 @@ function orderText(){
   return `SKMedKART Order\n\nName: ${$('name').value.trim()}\nMobile: ${$('mobile').value.trim()}\nAddress: ${$('address').value.trim()}\n\nMedicine / Products:\n${items||'• No catalogue product selected'}${extra?'\n\nAdditional Request:\n'+extra:''}`;
 }
 
+
+// Prescription handling for the website:
+// Upload the selected prescription to the same Firebase Storage used by SKMedKART,
+// then open the pharmacy WhatsApp chat with the prescription download link.
+let firebaseStoragePromise=null;
+async function uploadWebsitePrescription(file,phone){
+  if(!file)return null;
+  if(!firebaseStoragePromise){
+    firebaseStoragePromise=(async()=>{
+      const [{initializeApp,getApps},{getAuth,signInAnonymously},{getStorage,ref,uploadBytes,getDownloadURL}]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js')
+      ]);
+      const config={apiKey:'AIzaSyBdvOUiTVoBJHPE418iZqNzYftiN9yjooA',authDomain:'skmedkart.firebaseapp.com',projectId:'skmedkart',storageBucket:'skmedkart.firebasestorage.app',messagingSenderId:'921893232974',appId:'1:921893232974:web:45813196e59052e9597e1f'};
+      const app=getApps().length?getApps()[0]:initializeApp(config);
+      const auth=getAuth(app);
+      try{if(!auth.currentUser)await signInAnonymously(auth)}catch(e){console.warn('Website anonymous Firebase auth unavailable:',e?.code||e?.message)}
+      const storage=getStorage(app);
+      return {ref,uploadBytes,getDownloadURL,storage};
+    })();
+  }
+  const api=await firebaseStoragePromise;
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const r=api.ref(api.storage,`prescriptions/website/${String(phone||'customer').replace(/[^0-9]/g,'')||'customer'}/${Date.now()}_${safeName}`);
+  await api.uploadBytes(r,file);
+  return {name:file.name,url:await api.getDownloadURL(r)};
+}
+
 $('form').onsubmit=async e=>{
   e.preventDefault();
   if(!selected.length&&!$('extraMeds').value.trim())return alert('Please select at least one product or type an additional medicine/product request.');
   const f=$('prescription').files[0];
-  const text=orderText();
-  const shareText=text+(f?'\n\n📋 Prescription: Attached with this order.':'');
+  const btn=e.submitter||$('form').querySelector('button[type="submit"],button');
+  const oldText=btn?.textContent||'💬 Send Order on WhatsApp';
   try{
-    // Android/Chrome can share the real image/PDF file together with the order text.
-    if(f&&navigator.share&&navigator.canShare){
-      const shareData={title:'SKMedKART Order',text:shareText,files:[f]};
-      if(navigator.canShare(shareData)){
-        await navigator.share(shareData);
+    if(btn){btn.disabled=true;btn.textContent=f?'Uploading prescription...':'Opening WhatsApp...';}
+    let rx=null;
+    if(f){
+      try{
+        rx=await uploadWebsitePrescription(f,$('mobile').value.trim());
+      }catch(err){
+        console.error('Website prescription upload failed:',err);
+        alert('Prescription upload failed. The order was not sent so the prescription is not lost. Please try again.');
         return;
       }
     }
+    const text=orderText()+(rx?.url?'\n\n📋 Prescription:\n'+rx.url:'');
+    location.href=wa(text);
   }catch(err){
-    if(err?.name==='AbortError')return;
-    console.warn('File share unavailable:',err);
+    console.error('Order error:',err);
+    alert('Order could not be opened. Please try again.');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=oldText}
   }
-  if(f){
-    alert('WhatsApp will receive the order text now. Please attach the selected prescription file in WhatsApp before sending.');
-  }
-  location.href=wa(shareText+(f?'\n\nPlease attach the prescription file before sending.':''));
 };
-
 let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('install').hidden=false});
 $('install').onclick=async()=>{if(dp){dp.prompt();await dp.userChoice;dp=null;$('install').hidden=true}};
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
