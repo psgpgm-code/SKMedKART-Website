@@ -1,82 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1769aa"><meta name="description" content="SKMedKART - Sri Krishna Medicals, Pennagaram"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>SKMedKART | Sri Krishna Medicals</title></head><body>
 <header><div class="brand"><b>SK</b><strong>SKMedKART</strong><small>Sri Krishna Medicals</small></div><button id="menu">☰</button><nav><a href="#home">Home</a><a href="#products">Products</a><a href="#order">Order</a><a href="#services">Services</a><a href="#contact">Contact</a></nav></header>
-
-<script>
-/* SKMedKART — DIRECT WHATSAPP ORDER FIX ONLY
-   Intercepts the website order form before the old Android share-sheet handler.
-   Does not change catalogue, products, order fields, or other page features.
-*/
-(function () {
-  const WA_NUMBER = '918300363317';
-
-  function openDirectWhatsApp(e) {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    }
-
-    const name = (document.getElementById('name')?.value || '').trim();
-    const mobile = (document.getElementById('mobile')?.value || '').trim();
-    const address = (document.getElementById('address')?.value || '').trim();
-    const extra = (document.getElementById('extraMeds')?.value || '').trim();
-    const selectedBox = document.getElementById('selectedProducts');
-    const selected = selectedBox
-      ? selectedBox.innerText.replace(/\n{3,}/g, '\n\n').trim()
-      : '';
-    const file = document.getElementById('prescription')?.files?.[0];
-
-    const lines = [
-      '🛒 *SKMedKART Order*',
-      '',
-      '👤 *Name:* ' + name,
-      '📱 *Mobile:* ' + mobile,
-      '🏠 *Address:* ' + address,
-      ''
-    ];
-
-    if (selected && !/No products selected/i.test(selected)) {
-      lines.push('📦 *Medicine / Products:*', selected, '');
-    }
-
-    if (extra) {
-      lines.push('📝 *Additional request:*', extra, '');
-    }
-
-    if (file) {
-      lines.push('📋 *Prescription:* ' + file.name, '');
-      lines.push('⚠️ Prescription file selected on the website. Please ask the customer to attach/send the image in this WhatsApp chat.');
-      lines.push('');
-    }
-
-    lines.push('Thank you - Sri Krishna Medicals, Pennagaram.');
-
-    const waUrl =
-      'https://wa.me/' + WA_NUMBER +
-      '?text=' + encodeURIComponent(lines.join('\n'));
-
-    window.location.href = waUrl;
-  }
-
-  function installDirectHandler() {
-    const form = document.getElementById('form');
-    if (!form || form.dataset.directWaFix === '1') return;
-    form.dataset.directWaFix = '1';
-
-    /* Capture phase runs before the old share-sheet submit handler. */
-    form.addEventListener('submit', openDirectWhatsApp, true);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', installDirectHandler);
-  } else {
-    installDirectHandler();
-  }
-
-  window.addEventListener('load', installDirectHandler);
-})();
-</script>
-
 <main>
 <section id="home" class="hero"><div><span class="tag">PENNAGARAM • LOCAL PHARMACY</span><h1>Medicines made <em>simple.</em></h1><p>Order medicines, send your prescription and contact Sri Krishna Medicals for home delivery.</p><a class="btn" href="#order">💊 Order Medicines</a> <a class="btn pale" href="tel:7200673944">📞 Call</a></div><aside><div class="big">🚚</div><h2>Home Delivery</h2><p>Send your order and we will confirm availability and delivery.</p><a id="wa" class="wa">💬 WhatsApp Order</a></aside></section>
 <section class="search"><h2>Find your medicine</h2><input id="search" placeholder="Search category or product…"><div id="results"></div></section>
@@ -85,5 +8,5 @@
 <form id="form"><label>Name<input id="name" required></label><label>Mobile<input id="mobile" required inputmode="tel"></label><label>Address<textarea id="address" required rows="3"></textarea></label><label>Additional medicine / product request (optional)<textarea id="extraMeds" rows="3" placeholder="If a product is not listed, type it here"></textarea></label><label>Prescription (optional)<input id="prescription" type="file" accept="image/*,.pdf"></label><div id="file">No prescription selected</div><button class="btn full">💬 Send Order on WhatsApp</button><small>Availability, price and delivery will be confirmed by Sri Krishna Medicals.</small></form></section>
 <section id="services" class="section"><span class="tag">SERVICES</span><h2>More than a pharmacy</h2><div class="grid services"><article>🚚<h3>Home Delivery</h3><p>Convenient local delivery.</p></article><article>🩺<h3>BP Testing</h3><p>Blood pressure testing available.</p></article><article>📱<h3>WhatsApp Orders</h3><p>Send your list or prescription.</p></article><article>💊<h3>Wide Range</h3><p>Human & veterinary medicines and healthcare products.</p></article></div></section>
 <section class="install"><div><span class="tag">SKMedKART</span><h2>Install this website like an app</h2><p>Use Chrome's Add to Home Screen / Install option.</p></div><button id="install" class="btn pale" hidden>📲 Install App</button></section>
-<section id="contact" class="section"><span class="tag">VISIT US</span><h2>Sri Krishna Medicals</h2><p>Kaveri Road, Pennagaram, Dharmapuri, Tamil Nadu</p><div class="card"><p><b>🏥 Our History</b><br>Sri Krishna Medicals, Pennagaram started on <b>19 March 2019</b>.</p><p><b>💊 Pharmacist</b><br>Mr. P. Gopalakrishnan, M.Pharm.</p><p><b>🕐 Working Hours</b><br>Morning 07:45 AM to 10:00 PM</p></div><a class="btn" href="tel:7200673944">📞 7200673944</a> <a class="btn pale" target="_blank" href="https://maps.app.goo.gl/t6uPRjk9Es9tm2xaA">📍 Google Maps</a></section>
+<section id="contact" class="section"><span class="tag">VISIT US</span><h2>Sri Krishna Medicals</h2><p>Kaveri Road, Pennagaram, Dharmapuri, Tamil Nadu</p><a class="btn" href="tel:7200673944">📞 7200673944</a> <a class="btn pale" target="_blank" href="https://maps.app.goo.gl/t6uPRjk9Es9tm2xaA">📍 Google Maps</a></section>
 </main><footer><b>SKMedKART</b> · Sri Krishna Medicals, Pennagaram<br>© <span id="year"></span></footer><script src="app.js"></script></body></html>
