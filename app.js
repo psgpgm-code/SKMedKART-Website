@@ -103,12 +103,24 @@ $('form').onsubmit=async e=>{
   if(!selected.length&&!$('extraMeds').value.trim())return alert('Please select at least one product or type an additional medicine/product request.');
   const f=$('prescription').files[0];
   const text=orderText();
-  // IMPORTANT: Do not use navigator.share() here.
-  // Android/Chrome opens the system "Sharing image" picker when a
-  // prescription file is included. The required website behaviour is
-  // direct WhatsApp chat.
-  const directText=text+(f?'\n\n📋 Prescription selected: '+f.name+'\nPlease attach this prescription file in the WhatsApp chat before sending.':'');
-  location.href=wa(directText);
+  const shareText=text+(f?'\n\n📋 Prescription: Attached with this order.':'');
+  try{
+    // Android/Chrome can share the real image/PDF file together with the order text.
+    if(f&&navigator.share&&navigator.canShare){
+      const shareData={title:'SKMedKART Order',text:shareText,files:[f]};
+      if(navigator.canShare(shareData)){
+        await navigator.share(shareData);
+        return;
+      }
+    }
+  }catch(err){
+    if(err?.name==='AbortError')return;
+    console.warn('File share unavailable:',err);
+  }
+  if(f){
+    alert('WhatsApp will receive the order text now. Please attach the selected prescription file in WhatsApp before sending.');
+  }
+  location.href=wa(shareText+(f?'\n\nPlease attach the prescription file before sending.':''));
 };
 
 let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('install').hidden=false});
