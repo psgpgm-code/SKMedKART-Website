@@ -103,23 +103,24 @@ $('form').onsubmit=async e=>{
   if(!selected.length&&!$('extraMeds').value.trim())return alert('Please select at least one product or type an additional medicine/product request.');
   const f=$('prescription').files[0];
   const text=orderText();
-  const shareText=text+(f?'\n\n📋 Prescription: Selected — please attach it in this WhatsApp chat.':'');
-
-  // IMPORTANT: Do not use navigator.share() here. On Android it opens the
-  // system share sheet and asks “To whom to share?”. Open the shop's
-  // WhatsApp chat directly instead.
-  const directWhatsApp='whatsapp://send?phone='+WA+'&text='+encodeURIComponent(shareText);
-  const webWhatsApp=wa(shareText);
-
-  if(f){
-    alert('WhatsApp chat will open directly. The selected prescription image cannot be auto-attached by a browser; please attach the selected image in the opened chat.');
+  const shareText=text+(f?'\n\n📋 Prescription: Attached with this order.':'');
+  try{
+    // Android/Chrome can share the real image/PDF file together with the order text.
+    if(f&&navigator.share&&navigator.canShare){
+      const shareData={title:'SKMedKART Order',text:shareText,files:[f]};
+      if(navigator.canShare(shareData)){
+        await navigator.share(shareData);
+        return;
+      }
+    }
+  }catch(err){
+    if(err?.name==='AbortError')return;
+    console.warn('File share unavailable:',err);
   }
-
-  // Try the installed WhatsApp app first; fall back to wa.me if the app
-  // cannot be opened. This avoids the Android share chooser completely.
-  const fallbackTimer=setTimeout(()=>{ location.href=webWhatsApp; },1200);
-  location.href=directWhatsApp;
-  setTimeout(()=>clearTimeout(fallbackTimer),700);
+  if(f){
+    alert('WhatsApp will receive the order text now. Please attach the selected prescription file in WhatsApp before sending.');
+  }
+  location.href=wa(shareText+(f?'\n\nPlease attach the prescription file before sending.':''));
 };
 
 let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('install').hidden=false});
